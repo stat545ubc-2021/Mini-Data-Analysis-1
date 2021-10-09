@@ -178,12 +178,13 @@ steam_games_time %>%
   ggplot(aes(x = release_date, y = original_price)) + # Plot graph with x as release date and y as original game price 
   geom_point(alpha = 0.3, size = 0.3)                 # Reduce size and transparency to show more data point
 ```
+
 Lastly, an example analysis for investigating the change in game industry overtime, I decided to investigate the relationship between game price and release date. The graph above plots the original price and release date of games and we observe that overtime there is a greater number of games that have higher original price. However, it was found that many of the game prices are incorrectly entered, for example, the Railgunners game cost 730640. Although we have removed all games that had prices higher than 250, the games with a high price may be explained by incorrect data entry.  
 
 
 # Task 3: Write your research questions (5 points)
 
-So far, you have chosen a data set and gotten familiar with it through exploring the data. Now it's time to figure out 4 research questions that you would like to answer with your data! Write the 4 questions and any additional comments at the end of this deliverable. 
+Now it's time to figure out 4 research questions to answer with the data! Write the 4 questions and any additional comments at the end of this deliverable. 
 
 1. How does having a mature rating effect the rating of games in different genre?
 2. Which game genre have the highest rating? Has this changed overtime? 
