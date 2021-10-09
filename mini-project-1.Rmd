@@ -5,7 +5,7 @@ output: html_document
 
 # Introduction
 
-This mini-data analysis aims to explore, analyze and present data from databases using *R* and *tidyverse*. Data manipulation and analysis was done using *dplyr* package. *ggplot2* was used for data visualization. 
+This mini-data analysis aims to explore, analyze and present data from databases using *R* and *tidyverse*. Data manipulation and analysis was done using *dplyr* package. *ggplot2* was used for data visualization. The datasets are taken from *datateachr* package.
 
 The learning objectives of this section is:
 
