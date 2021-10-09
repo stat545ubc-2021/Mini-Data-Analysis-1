@@ -8,8 +8,11 @@ output: html_document
 This mini-data analysis aims to explore, analyze and present data from databases using *R* and *tidyverse*. Data manipulation and analysis was done using *dplyr* package. *ggplot2* was used for data visualization. 
 
 The learning objectives of this section is:
+
 + Become familiar with your dataset of choosing
+
 + Think of 4 questions that you would like to answer with your data
+
 + Generate a reproducible and clear report using R Markdown
 
 Load necessary packages for this project.
@@ -72,7 +75,7 @@ ncol(cancer_sample) # Number of column
 nrow(cancer_sample) # Number of row
 ```
 
-The cancer_sample dataset looks at various cancer samples in patients. There are 569 cancer samples were included. For each cancer sample, the diagnosis column categorize samples as benign (b) or malignant (m). Moreover, the mean, standard deviation and worst radius, texture, permeter, area, smoothness, compactness, concavity, concavity points, symmetry and fractal dimension were investigated for each cancer sample. With the exception of diagnosis variable which was a character data type, the other variables were all double-precision floating point number data type.
+The cancer_sample dataset looks at various cancer samples in patients. 569 cancer samples were included in this data set. For each cancer sample, the diagnosis variable categorizes samples as benign (b) or malignant (m). Moreover, the mean, standard deviation and worst radius, texture, permeter, area, smoothness, compactness, concavity, concavity points, symmetry and fractal dimension were investigated for each cancer sample. With the exception of diagnosis variable which was a character data type, the other variables were all double-precision floating point number data type.
 
 ***1.2.3 steam_games data overview***
 ```{r}
@@ -85,7 +88,7 @@ ncol(steam_games) # Number of column (variables) in dataset
 nrow(steam_games) # Number of rows (games) in dataset
 ```
 
-The third data set I choose was steam_games. This data set looks at 40833 steam games. There is 21 variables recorded for each game. The id, achievements, original_price and discount_price are in double-precision floating point number data type while the rest are character data type. Interestingly, the release date is in character data type thus needs to be converted into date data type if used for analysis. 
+The third data set I choose was steam_games. This data set looks at 40833 steam games. There is 21 variables recorded for each game. The id, achievements, original_price and discount_price are in double-precision floating point number data type while the rest are character data type. Interestingly, the release date is in character data type thus needs to be converted into date data type if used for analysis. Moreover, the all_reviews and recent_reviews variable needs to be parsed as it is difficult to analyze in this current format.
 
 ***1.2.4 parking_meters data overview***
 ```{r}
@@ -119,7 +122,7 @@ A potential research question for *steam_games* is exploring different the varia
 
 Before I formulate my *4* research questions about *steam_games*, it is handy to do some exploration on the data set.
 
-### 2.1 Complete four exercise into your data. 
+### 2.1 Complete four exercise for your data set. 
 
 ***1. Create a new variable based on other variables in your data (only if it makes sense)***
 ```{r}
@@ -154,7 +157,7 @@ steam_games_review %>%
   head()
 ```
 
-Another important variable used for analysis is the game review. However, the all_reviews variable are not in an easy to analyze format (e.g Very Positive,(42,550),- 92% of the 42,550 user reviews for this game are positive.). Thus I decided to partition the string using comma and make the new variable review using the first string (e.g "Very Positive"). Moreover, I filtered out reviews that didn't have missing data or had too little reviews thus did not have a review level. The subset of data will have all games categorized as one of the review level in the review_level list. This can allow us to do analysis based on how well received the game was such as filtering for games that were either overwhelmingly positive or negative. 
+Another important variable used for analysis is the game review. However, the all_reviews variable are not in an easy to analyze format (e.g Very Positive,(42,550),- 92% of the 42,550 user reviews for this game are positive.). Thus I decided to partition the string using comma and make the new variable review using the first string (e.g "Very Positive"). Moreover, I filtered out reviews that didn't have missing data or had too little reviews thus did not have a review level. The subset of data will have all games categorized as one of the review level in the review_level list. This can allow us to do analysis based on how well received the game was. For example, I filtered games that were either overwhelmingly positive or negative which can be used to compare different properties of games in the two extremes end of the review levels.
 
 ***3. Use a box plot to look at the frequency of different observations within a single variable***
 ```{R}
@@ -179,7 +182,7 @@ steam_games_time %>%
   geom_point(alpha = 0.3, size = 0.3)                 # Reduce size and transparency to show more data point
 ```
 
-Lastly, an example analysis for investigating the change in game industry overtime, I decided to investigate the relationship between game price and release date. The graph above plots the original price and release date of games and we observe that overtime there is a greater number of games that have higher original price. However, it was found that many of the game prices are incorrectly entered, for example, the Railgunners game cost 730640. Although we have removed all games that had prices higher than 250, the games with a high price may be explained by incorrect data entry.  
+Lastly, an example analysis for investigating the change in gaming industry overtime is looking at the relationship between game price and release date. The graph above plots the original price and release date of games. We observe that overtime there is a greater number of games that have higher original price. However, many of the game prices are incorrectly entered, for example, the Railgunners game cost 730640. Although we have removed all games that had prices higher than 250, the games with a high price may be explained by incorrect data entry.  
 
 
 # Task 3: Write your research questions (5 points)
@@ -188,7 +191,7 @@ Now it's time to figure out 4 research questions to answer with the data! Write 
 
 1. How does having a mature rating effect the rating of games in different genre?
 2. Which game genre have the highest rating? Has this changed overtime? 
-3. How many games has never been discounted? Has there been a change in the amount games are discounted overtime? Are games with bigger discounts more well received? 
+3. How many games have never been discounted? Has there been a change in the amount games are discounted overtime? Are games with bigger discounts more well received? 
 4. Do the number of achievements in a game affect their rating in various genres? 
 
 
