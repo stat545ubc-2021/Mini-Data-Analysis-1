@@ -42,7 +42,7 @@ First, write out the 4 research questions you defined in milestone 1 were. This 
 <!-------------------------- Start your work below ---------------------------->
 1. *How does having a mature rating effect the rating of games in different genre?*
 2. *Which game genre have the highest rating? Has this changed overtime?*
-3. *How many games have never been discounted? Has there been a change in the amount games are discounted overtime? Are games with bigger discounts more well received?*
+3. *What are the effects of discounting a game, do they improve the rating of games?* 
 4. *Do the number of achievements in a game affect their rating in various genres?*
 <!----------------------------------------------------------------------------->
 
@@ -69,7 +69,7 @@ Ensure that the output of each operation is printed!
 Make sure it's clear what research question you are doing each operation for!
 
 <!------------------------- Start your work below ----------------------------->
-*** 1.2.1 How does having a mature rating effect the rating of games in different genre? ***
+***1.2.1 How does having a mature rating effect the rating of games in different genre?***
 
 *Summarizing: Task 2*
 ```{R}
@@ -100,9 +100,9 @@ games_maturity_review %>%
 
 The graph above is a bar chart showing the frequency of games at each review level faceted based on whether it has maturity rating. As shown in the summary table above, the frequency of the games in each category ranges from 0 to 4292, thus I decided to use log10 scale. This makes the data easier to read and interpret. This graph is important as it directly answers the first part of the research question which is investigating the relationship between review level and maturity rating. 
 
-*** 1.2.2 Which game genre have the highest rating? Has this changed overtime? ***
+***1.2.2 Which game genre have the highest rating? Has this changed overtime?***
 
-* Summarizing: Task 2 *
+*Summarizing: Task 2*
 
 ```{R}
 steam_games %>%
@@ -115,7 +115,7 @@ For this research question, I had trouble categorizing games into genres. The or
 
 The summary table above shows that number of observation for each genre. The value in the original genre column have a alphabetized list of genres, thus taking the first genre of each list will result bias in genre frequency. As shown in the table above, "Action" and "Adventure" has high n number because they tend to appear early in the list of genre in the original data set. This helps answer the research question as it shows the number of observation in the grouped data used to answer the questions. 
 
-* Graphing: Task 2 *
+*Graphing: Task 2*
 ```{r, fig.width=5, fig.height=4}
 steam_games %>%
   separate(genre, sep=',', into=c("genre"), remove=TRUE, extra = "drop", fill = "right") %>%
@@ -133,6 +133,42 @@ steam_games %>%
 
 ```
 I investigated the relationship between release date and frequency of game genres to answer this research question. The data is faceted into 4 category based on their release date and the frequency of each game genre is plotted. Similar to the previous graph, the range of genre frequency is quite large, thus I decided to do a log10 transformation on the genre count. This graphs is the first step in answering the research question, next would be to take into consideration the review levels of each game. Some observations of the graph above is that over time there is a greater variety of games, for example, before 2015, there are few Massively Multiplayer games or games with gore whereas after 2015, there is an increase in frequency in these games. 
+
+
+
+***1.2.3 What are the effects of discounting a game, do they improve the rating of games?***
+
+*Summarizing: Task 1*
+```{R}
+game_reivew_price <- steam_games %>%
+  separate(all_reviews, sep=',', into=c("review", 'num_review'), remove=FALSE, extra = "drop", fill = "right") %>%
+  filter(review %in% reviews) %>%
+  select(id, original_price, discount_price, review) %>%
+  filter(original_price > discount_price) %>% 
+  mutate(discount = original_price - discount_price) 
+
+game_reivew_price %>%
+  group_by(review) %>%
+  summarize(mean_discount = mean(discount), 
+            median_discount = median(discount),
+            max_discount = max(discount),
+            min_discount = min(discount),
+            stdev_discount = sd(discount),
+            n = n())
+```
+
+*Graphing: Task 7*
+```{R}
+game_reivew_price %>%
+  ggplot(aes(factor(review, levels = reviews), discount)) +
+  geom_jitter(alpha=0.3) + 
+  coord_flip()
+```
+The jitter plot above explores the relationship between the amount discounted from the game and the review level. We hypothesized that games with larger discount may be associated with better reviews because people feel like they it is more worth it to get it on sale. The graph above shows that negative, very negative and mostly negative games tend to have less discount however, this may be due to simply having less games that are negatively reviewed as mentioned before. Not only are there more positively rated game with discounts but there is a much greater discount.  It is important to note that I have filtered out games with no discount (or discounted price greater than original price), hence, every dot in the plot is a game that has been discounted. I decided to add alpha transparency of 0.3 as there were many games that had a small discount. With the alpha transparency, it clearly shows more games with small discount were rated positively than negatively. 
+
+***1.2.4 Do the number of achievements in a game affect their rating in various genres?***
+*Summarizing: Task 1
+
 
 <!----------------------------------------------------------------------------->
 
