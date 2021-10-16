@@ -100,6 +100,39 @@ games_maturity_review %>%
 
 The graph above is a bar chart showing the frequency of games at each review level faceted based on whether it has maturity rating. As shown in the summary table above, the frequency of the games in each category ranges from 0 to 4292, thus I decided to use log10 scale. This makes the data easier to read and interpret. This graph is important as it directly answers the first part of the research question which is investigating the relationship between review level and maturity rating. 
 
+*** 1.2.2 Which game genre have the highest rating? Has this changed overtime? ***
+
+* Summarizing: Task 2 *
+
+```{R}
+steam_games %>%
+  separate(genre, sep=',', into=c("genre"), remove=TRUE, extra = "drop", fill = "right") %>%
+  group_by(genre) %>%
+  summarize(n = n())
+```
+
+For this research question, I had trouble categorizing games into genres. The original data set had a column for genre, however, the values are a list of genres which is difficult to analyze and represent graphically. Therefore, I decided to take the first genre listed in each game as it's genre. 
+
+The summary table above shows that number of observation for each genre. The value in the original genre column have a alphabetized list of genres, thus taking the first genre of each list will result bias in genre frequency. As shown in the table above, "Action" and "Adventure" has high n number because they tend to appear early in the list of genre in the original data set. This helps answer the research question as it shows the number of observation in the grouped data used to answer the questions. 
+
+* Graphing: Task 2 *
+```{r, fig.width=5, fig.height=4}
+steam_games %>%
+  separate(genre, sep=',', into=c("genre"), remove=TRUE, extra = "drop", fill = "right") %>%
+  drop_na(release_date) %>%
+  mutate(release_date = format(as.Date(release_date, '%b %d, %Y'), format='%Y')) %>%
+  mutate(release_date_group = case_when(release_date < 2010 ~ 'Pre 2010',
+                                        release_date < 2015 ~ '2010-2015',
+                                        release_date < 2020 ~ '2015-2020',
+                                        TRUE ~ '2020+')) %>%
+  ggplot(aes(reorder(genre,genre,function(x)-length(x)))) + 
+  facet_wrap( ~release_date_group ) +
+  geom_bar() + 
+  scale_y_continuous(trans = 'log10') +
+  coord_flip()
+
+```
+I investigated the relationship between release date and frequency of game genres to answer this research question. The data is faceted into 4 category based on their release date and the frequency of each game genre is plotted. Similar to the previous graph, the range of genre frequency is quite large, thus I decided to do a log10 transformation on the genre count. This graphs is the first step in answering the research question, next would be to take into consideration the review levels of each game. Some observations of the graph above is that over time there is a greater variety of games, for example, before 2015, there are few Massively Multiplayer games or games with gore whereas after 2015, there is an increase in frequency in these games. 
 
 <!----------------------------------------------------------------------------->
 
