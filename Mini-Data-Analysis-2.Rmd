@@ -1,6 +1,6 @@
 ---
 title: "Mini Data Analysis Milestone 2"
-output: html_document
+output: github_document
 ---
 
 # Welcome back to your mini data analysis project!
@@ -12,8 +12,10 @@ This time, we will explore more in depth the concept of *tidy data*, and hopeful
 Begin by loading your data and the tidyverse package below: 
 
 ```{r, message = FALSE}
-library(datateachr) # <- might contain the data you picked!
-library(tidyverse)
+suppressMessages(library(datateachr)) 
+suppressMessages(library(tidyverse))
+suppressMessages(library(stringr))
+
 ```
 
 # Learning Objectives
@@ -40,10 +42,10 @@ From milestone 1, you should have an idea of the basic structure of your dataset
 First, write out the 4 research questions you defined in milestone 1 were. This will guide your work through milestone 2:
 
 <!-------------------------- Start your work below ---------------------------->
-1. *How does having a mature rating effect the rating of games in different genre?*
-2. *Which game genre have the highest rating? Has this changed overtime?*
-3. *What are the effects of discounting a game, do they improve the rating of games?* 
-4. *Do the number of achievements in a game affect their rating in various genres?*
+1. *How does having a mature rating effect the rating of games in horror and violent game compared to other genres?*
+2. *Which game genre have the highest rating and has this changed overtime?*
+3. *How does discounting a game affect the rating of the game?* 
+4. *To what extent does the number of achievements in a game affect their rating?*
 <!----------------------------------------------------------------------------->
 
 ### 1.2 (10 points)
@@ -69,46 +71,58 @@ Ensure that the output of each operation is printed!
 Make sure it's clear what research question you are doing each operation for!
 
 <!------------------------- Start your work below ----------------------------->
-***1.2.1 How does having a mature rating effect the rating of games in different genre?***
+***1.2.1 How does having a mature rating effect the rating of games in horror and violent game compared to other genres?***
 
 *Summarizing: Task 2*
 ```{R}
+# Vector of all possible review level
+review_level=c('Overwhelmingly Negative', 'Mostly Negative', 'Very Negative', 'Negative', 'Mixed',
+          'Positive', 'Very Positive','Mostly Positive','Overwhelmingly Positive')
+
+
 games_maturity_review <- steam_games %>% 
-  mutate(mature = grepl("Mature", mature_content)) %>%
-  select(id, all_reviews, mature) %>% 
-  separate(all_reviews, sep=',', into=c("review", 'num_review'), remove=FALSE, extra = "drop", fill = "right") %>%
-  filter(review %in% reviews)
+  mutate(mature = grepl("Mature", mature_content)) %>% # TRUE if mature_content contains the word mature
+  select(id, all_reviews, mature) %>%  # Select review level and mature
+  separate(all_reviews, sep=',', into=c("review"), remove=FALSE, extra = "drop", fill = "right") %>%
+  # Get review level by parsing string based on comma deliminator and keeping first object
+  filter(review %in% review_level) # Remove entries that have wrong formatting (e.g different)
 
 games_maturity_review %>%
   group_by(review, mature) %>% 
-  summarise(n=n())
+  summarise(n=n()) # Show number of games grouped by review and mature
 
 ```
 
-The summary table above shows the number of observations grouped by review level and whether a game has a mature rating. We can see that there are less games that have mature rating at each review level. The group with the most observation is mixed review level without a mature rating. This is important summary table as it provides an overview of the organized data needed to answer this research question
+The summary table above shows the number of observations grouped by review level and whether a game has a mature rating. We can see that there are less games that have mature rating at each review level. The group with the most observation is mixed review level without a mature rating. This is important summary table as it provides an overview of the organized data needed to answer this research question.
 
 *Graphing: Task 6*
 
 ```{R}
+mature.labs <- c('Mature rating', 'Not Mature rating') # Used to create facet title
+names(mature.labs) <- c(TRUE, FALSE)
+
 games_maturity_review %>%
-  ggplot(aes(factor(review, levels = reviews))) +
-  geom_bar() +
-  facet_wrap(~mature, ncol = 1) + 
-  scale_y_continuous(trans = 'log10') +
-  coord_flip()
+  ggplot(aes(factor(review, levels = review_level))) + # X axis is review level (ordered from most negative to most positive)
+  geom_bar() + # Bar chart
+  facet_wrap(~mature, ncol = 1, labeller = labeller (mature = mature.labs)) + # Faceted based on whether it has mature rating or not 
+  scale_y_continuous(trans = 'log10') + # Make count in log10 scale
+  coord_flip() + # Flip graph to see review levels more clearly
+  xlab('Review Levels')
+  
 ```
 
 The graph above is a bar chart showing the frequency of games at each review level faceted based on whether it has maturity rating. As shown in the summary table above, the frequency of the games in each category ranges from 0 to 4292, thus I decided to use log10 scale. This makes the data easier to read and interpret. This graph is important as it directly answers the first part of the research question which is investigating the relationship between review level and maturity rating. 
 
-***1.2.2 Which game genre have the highest rating? Has this changed overtime?***
+***1.2.2 Which game genre have the highest rating and has this changed overtime?***
 
 *Summarizing: Task 2*
 
 ```{R}
 steam_games %>%
-  separate(genre, sep=',', into=c("genre"), remove=TRUE, extra = "drop", fill = "right") %>%
-  group_by(genre) %>%
-  summarize(n = n())
+  # Only keep the first genre in genre list
+  separate(genre, sep=',', into=c("genre"), remove=TRUE, extra = "drop", fill = "right") %>% 
+  group_by(genre) %>% 
+  summarize(n = n()) # Display number of games in each genre
 ```
 
 For this research question, I had trouble categorizing games into genres. The original data set had a column for genre, however, the values are a list of genres which is difficult to analyze and represent graphically. Therefore, I decided to take the first genre listed in each game as it's genre. 
@@ -116,40 +130,43 @@ For this research question, I had trouble categorizing games into genres. The or
 The summary table above shows that number of observation for each genre. The value in the original genre column have a alphabetized list of genres, thus taking the first genre of each list will result bias in genre frequency. As shown in the table above, "Action" and "Adventure" has high n number because they tend to appear early in the list of genre in the original data set. This helps answer the research question as it shows the number of observation in the grouped data used to answer the questions. 
 
 *Graphing: Task 2*
-```{r, fig.width=5, fig.height=4}
+```{r, fig.width=10, fig.height=9}
 steam_games %>%
-  separate(genre, sep=',', into=c("genre"), remove=TRUE, extra = "drop", fill = "right") %>%
-  drop_na(release_date) %>%
-  mutate(release_date = format(as.Date(release_date, '%b %d, %Y'), format='%Y')) %>%
-  mutate(release_date_group = case_when(release_date < 2010 ~ 'Pre 2010',
+  separate(genre, sep=',', into=c("genre"), remove=TRUE, extra = "drop", fill = "right") %>% 
+  drop_na(release_date) %>% # Remove NA values
+  mutate(release_date = format(as.Date(release_date, '%b %d, %Y'), format='%Y')) %>%  
+  mutate(release_date_group = case_when(release_date < 2010 ~ 'Pre 2010', # Group release dates 
                                         release_date < 2015 ~ '2010-2015',
                                         release_date < 2020 ~ '2015-2020',
                                         TRUE ~ '2020+')) %>%
-  ggplot(aes(reorder(genre,genre,function(x)-length(x)))) + 
-  facet_wrap( ~release_date_group ) +
-  geom_bar() + 
-  scale_y_continuous(trans = 'log10') +
-  coord_flip()
-
+  ggplot(aes(reorder(genre,genre,function(x)-length(x)))) + # X axis is genre (Order based on frequency)
+  facet_wrap( ~release_date_group) + # Facet based on release date grouping above
+  geom_bar() + # Bar chart
+  coord_flip() + # Flip graph to see genre more clearly
+  xlab('Game Genre') + #Chang x axis
+  scale_y_continuous(trans = 'log10')  # Make frequency into log10 
 ```
+
+
 I investigated the relationship between release date and frequency of game genres to answer this research question. The data is faceted into 4 category based on their release date and the frequency of each game genre is plotted. Similar to the previous graph, the range of genre frequency is quite large, thus I decided to do a log10 transformation on the genre count. This graphs is the first step in answering the research question, next would be to take into consideration the review levels of each game. Some observations of the graph above is that over time there is a greater variety of games, for example, before 2015, there are few Massively Multiplayer games or games with gore whereas after 2015, there is an increase in frequency in these games. 
 
 
 
-***1.2.3 What are the effects of discounting a game, do they improve the rating of games?***
+***1.2.3 How does discounting a game affect the rating of the game?***
 
 *Summarizing: Task 1*
 ```{R}
 game_reivew_price <- steam_games %>%
-  separate(all_reviews, sep=',', into=c("review", 'num_review'), remove=FALSE, extra = "drop", fill = "right") %>%
-  filter(review %in% reviews) %>%
-  select(id, original_price, discount_price, review) %>%
-  filter(original_price > discount_price) %>% 
-  mutate(discount = original_price - discount_price) 
+  # Get review level by parsing string based on comma deliminator and keeping first object
+  separate(all_reviews, sep=',', into=c("review"), remove=FALSE, extra = "drop", fill = "right") %>%
+  filter(review %in% review_level) %>% # Remove reviews not in correct format (e.g not enough review or NA)
+  select(id, original_price, discount_price, review) %>% # Keep ID, original price and discount price column
+  filter(original_price > discount_price) %>% # Remove games where discount price is greater than original price
+  mutate(discount = original_price - discount_price) # Create new column which is the amount discounted
 
 game_reivew_price %>%
   group_by(review) %>%
-  summarize(mean_discount = mean(discount), 
+  summarize(mean_discount = mean(discount), # Provide statistical summary of discount grouped by review level
             median_discount = median(discount),
             max_discount = max(discount),
             min_discount = min(discount),
@@ -160,15 +177,54 @@ game_reivew_price %>%
 *Graphing: Task 7*
 ```{R}
 game_reivew_price %>%
-  ggplot(aes(factor(review, levels = reviews), discount)) +
-  geom_jitter(alpha=0.3) + 
-  coord_flip()
+  ggplot(aes(factor(review, levels = review_level), discount)) + # X axis is review level (ordered from most negative to most positive)
+  geom_jitter(alpha=0.3) + # Use jitter plot with alpha transparency
+  coord_flip() + # Flip graph to show review level better
+  xlab('Review Level') + # Change x axis
+  ylab('Amount discounted')
 ```
-The jitter plot above explores the relationship between the amount discounted from the game and the review level. We hypothesized that games with larger discount may be associated with better reviews because people feel like they it is more worth it to get it on sale. The graph above shows that negative, very negative and mostly negative games tend to have less discount however, this may be due to simply having less games that are negatively reviewed as mentioned before. Not only are there more positively rated game with discounts but there is a much greater discount.  It is important to note that I have filtered out games with no discount (or discounted price greater than original price), hence, every dot in the plot is a game that has been discounted. I decided to add alpha transparency of 0.3 as there were many games that had a small discount. With the alpha transparency, it clearly shows more games with small discount were rated positively than negatively. 
 
-***1.2.4 Do the number of achievements in a game affect their rating in various genres?***
-*Summarizing: Task 1
+The jitter plot above explores the relationship between the amount discounted from the game and the review level. We hypothesized that games with larger discount may be associated with better reviews because people feel like they it is more worth it to get it on sale. The graph above shows that negative, very negative and mostly negative games tend to have less discount however, this may be due to simply having less games that are negatively reviewed as mentioned before. Not only are there more positively rated game with discounts but there is a much greater discount.  It is important to note that I have filtered out games with no discount (or discounted price greater than original price), hence, every dot in the plot is a game that has been discounted. I decided to add alpha transparency of 0.3 as there were many games that had a small discount. With the alpha transparency, it clearly shows more games with small discount were rated positively than negatively.
 
+***1.2.4 To what extent does the number of achievements in a game affect their rating?***
+
+*Summarizing: Task 1*
+```{R}
+game_review_achievement <- steam_games %>%
+  # Get review level by parsing string based on comma deliminator and keeping first object
+  separate(all_reviews, sep=',', into=c("review"), remove=FALSE, extra = "drop", fill = "right") %>%
+  filter(review %in% review_level) %>% # Remove reviews not in correct format (e.g not enough review or NA)
+  select(achievements, review) %>% # Keep achievements and review column
+  drop_na(achievements) # Remove games with NA as achievemnets
+
+game_review_achievement %>%
+  group_by(review) %>%
+  summarize(mean_achievements = mean(achievements), # Display summary statistic of achievmenet grouped by review
+            median_achievements = median(achievements),
+            max_achievements = max(achievements),
+            min_achievements = min(achievements),
+            stdev_achievements = sd(achievements),
+            n = n())
+```
+
+
+I first looked at the statistical summary of the number of achievements. For each review level, the mean, median, max, min, standard deviation and n number was calculated. Note that for the statistical summary above, games that had no achievements were filtered out as it skewed the data significantly resulting in uninteresting statistical summary. The median achievements is around 20-30 for each review level. The mean achievement is highest among mixed review games and mostly negative games. This is important to our research question because gives us an over view of the relationship between achievement number and review.
+
+
+```{R}
+review_achievement_hist <- game_review_achievement %>%
+  ggplot(aes(achievements)) + # X axis is achievement number
+  scale_y_continuous(trans = 'log10') + # Log10 transformation on frequency
+  xlab('Number of achievements')
+
+# Display histogram with varying bin width
+review_achievement_hist + geom_histogram(binwidth = 85) 
+review_achievement_hist + geom_histogram(binwidth = 350)
+review_achievement_hist + geom_histogram(binwidth = 700)
+
+```
+
+Afterwards, the distribution of achievements were plotted for visualization. As shown in the histogram above, most games contained no achievements at all and the data is skewed towards having low number of achievements as expected. The histogram is shown above with 3 different bin width, 85, 350 and 700 in order to determine which is most appropriate to represent the data. I think that the histogram with bin width of 85 contained too many empty bins while bin width of 700 displayed too little bins to effectively represent the data. Therefore, I believe that bin width 350 is best as it is able to show a smooth distribution while having sufficient number of bins. For all 3 bin width, it is difficult to see the bins of outlier games with over 5000 achievements, however, this is a minor issue as there are few data point that had achievement number greater than 5000. This is important to answer our research question as it is important to investigate the distribution of achievement numbers in general before investigating achievement distribution after grouped by review level or game genres.  
 
 <!----------------------------------------------------------------------------->
 
@@ -177,6 +233,22 @@ The jitter plot above explores the relationship between the amount discounted fr
 Based on the operations that you've completed, how much closer are you to answering your research questions? Think about what aspects of your research questions remain unclear. Can your research questions be refined, now that you've investigated your data a bit more? Which research questions are yielding interesting results?
 
 <!------------------------- Write your answer here ---------------------------->
+***1.3.1 How does having a mature rating effect the rating of games in horror and violent game compared to other genres?***
+
+The graph above showed the frequency of games grouped by rating level and faceted based on whether there is a maturity rating. However, the results suggest that maturity rating does not affect game rating. Both the mature rated games and not mature rated games show a similar distribution among rating levels. However, it may be worth while to investigate whether this relationship remains true in different genre. We hypothesize that game genre that is well suited for a mature rating such as horror, violent or gore genre may have higher rating with a mature rating compared to other game genres such as strategy or action games. It may be better to focus the research question on whether the horror, violent or gore genre benefit from having a mature rating compared to other genres. 
+
+***1.3.2 Which game genre have the highest rating and has this changed overtime?***
+
+In this mini-data analysis, we explored the distribution of game genres over time. As mentioned above, we noticed that over time there is a greater variety of games genres being released. Games with genres such as gore and massive multiplayer only started being released after the 2015. Moreover, action, adventure and casual game genre was consistently the most frequent game over time, however, this may be due to data processing bias as discussed previously. The next step would be to look at similar data across positively rated games compared to negatively rated games to see if there are any specific genre that yeilds interesting results. 
+
+***1.3.2 How does discounting a game affect the rating of the game?***
+
+In our analysis, we found that games with discount tend to skew towards having a higher rating. As shown in the jotter plot above, games that are discounted have positive or mixed review and the discounts are typically higher. However, this may be biased because there is more games that have positive review than negative review. It would be important to compared rating of games that are not discounted vs discounted to ensure that the relationship we are observing is not due to bias in the data. 
+
+***1.3.4 To what extent does the number of achievements in a game affect their rating?***
+
+Lastly, one of the research questions investigates the relationship between game rating and achievements. This may help game developers decide on whether game achievements contribute to the player's enjoyment of the game. In this paper, we looked at the distribution of game achievements. Most games tend to have very few or no achievements. The next step would be to look at this distribution in positively rated games compared to negatively rated games.  
+
 
 
 <!----------------------------------------------------------------------------->
@@ -198,7 +270,9 @@ A reminder of the definition of *tidy* data:
 Based on the definition above, can you identify if your data is tidy or untidy? Go through all your columns, or if you have >8 variables, just pick 8, and explain whether the data is untidy or tidy.
 
 <!--------------------------- Start your work below --------------------------->
+In terms of the data organization, the original steam_games data set is tidy. Each row in the data set correspond to a single unique observation (single game). For example, id and name is a unique identifier for each observation and does not repeat in multiple rows. Each row describes a specific games, the recent_review, developer, publisher, original_price, discount_price and genre are variables which are specific to a single observation. 
 
+However, the data is untidy in term of each cell being a single value. For example, the recent_reviews and all_review is a string containing the review level, number of reviews and additional statistics regarding review. This makes it difficult to do analysis as there is multiple values within each cell in those columns. As shown in the data analysis above, we had to parse and separate the string using comma deliminator to obtain the review level. Similarly, the popular tags and genre columns contained cell in the format of comma separated strings which is difficult to simply analyze without parsing the data.   
 
 <!----------------------------------------------------------------------------->
 
@@ -211,8 +285,27 @@ If your data is untidy, then tidy it! Then, untidy it back to it's original stat
 Be sure to explain your reasoning for this task. Show us the "before" and "after".
 
 <!--------------------------- Start your work below --------------------------->
+```{R}
+untidy <- steam_games %>%
+  select(id, url, name, release_date, types, original_price, discount_price, recent_reviews, all_reviews) %>%
+  # Pivot longer to untidy date using review type and price type as new columns 
+  pivot_longer(cols = c(recent_reviews, all_reviews), names_to = 'review_type', values_to = 'review_value') %>%
+  pivot_longer(cols = c(original_price, discount_price), names_to = 'price_type', values_to = 'price')
+
+head(untidy)
 
 
+tidy <- untidy %>%
+  # Retidy data by using pivot wider
+  pivot_wider(id_cols = c(-price_type, -price), names_from = price_type, values_from = price) %>% 
+  pivot_wider(id_cols = c(-review_type, -review_value), names_from = review_type, values_from = review_value)
+
+head(tidy)
+```
+
+As the organization of the data is considered tidy, I have decided to untidy the data. The table above is untidy because each row is no longer a single observation, for example, the first four rows are all in relationship to the "Doom" game. The review_type and price_type columns are not variables but instead are category for review_value and price respectively. This is difficult to perform analysis on as each row does not correspond to a single observation. For example, if I attempted to analyze the relationship between release_date and price, this would not work as each game will have two prices, further processing would be required (e.g filtering for original_price only in price_type). 
+
+If this was the organization of the original data set, I would need to use the pivot_longer function in order to merge the first four rows into one observation. As shown in the organized data set, it is a lot easier to analyze relationship between two variables as each row is an observation, each column is a variable and each cell is a value. 
 <!----------------------------------------------------------------------------->
 
 ### 2.3 (5 points)
@@ -223,6 +316,41 @@ Try to choose a version of your data that you think will be appropriate to answe
 
 <!--------------------------- Start your work below --------------------------->
 
+***2.3.1 How does discounting a game affect the rating of the game?***
+
+I decided to continue my analysis on the effect of game discount with game rating. Currently, in this paper, I have found a general trend towards games with discount with mixed or positive rating. However, as mentioned above, there may be some bias as there is simply more games in the data set with positive rating. Further analysis that can be done with this research question is looking at frequency of discount vs non-discount for each rating level. Moreover, we excluded games that had discount price higher than original price however, this occurs because it is a marketing strategy. We can perform analysis on whether this correlate with rating and number of player (use number of reviews as proxy).  
+
+
+```{R}
+steam_games %>%
+  # Get review level by parsing string based on comma deliminator and keeping first object
+  separate(all_reviews, sep=',', into=c("review"), remove=FALSE, extra = "drop", fill = "right") %>%
+  filter(review %in% review_level) %>% # Remove reviews not in correct format (e.g not enough review or NA) 
+  mutate(num_reviews = stringr::str_extract(string = all_reviews, 
+                                               pattern = "(?<=\\().*(?=\\))")) %>% # Obtain number of review based on value in bracket
+  mutate(discount_price = case_when(is.na(discount_price) ~ original_price,
+                                    TRUE ~ discount_price)) %>% # change discount price with NA to original price
+  drop_na(original_price) %>% # Remove games without price 
+  select(id, original_price, discount_price, review, num_reviews) %>% # Keep columns related to price and reviews
+  mutate(discount = original_price - discount_price) # Create new column that is discount amount
+```
+
+***2.3.2 Do the number of achievements in a game affect their rating?***
+
+Secondly, I decided to continue to investigate the relationship between achievement number and game rating in various genres. In this paper, we mainly focused on the summary statistics in this paper such as the mean, range, standard deviation and distribution. To continue to analysis, we could plot the achievement number for each rating to determine if there is a relationship. This could be faceted into the common genres to see if it yields any interesting result. This can help advise game developer on whether they should add achievements to their games and if this contributes to player's enjoyment. The following table is a filtered and tidy data set which is appropriate for answering this research question
+
+```{R}
+steam_games %>%
+  # Get review level by parsing string based on comma deliminator and keeping first object
+  separate(all_reviews, sep=',', into=c("review"), remove=FALSE, extra = "drop", fill = "right") %>%
+  filter(review %in% review_level) %>% # Remove reviews not in correct format (e.g not enough review or NA) 
+  # Change release_date to date format and keep year only
+  separate(genre, sep=',', into=c("genre"), remove=TRUE, extra = "drop", fill = "right") %>%
+  select(id, achievements, review, genre) %>% # Keep columns related to achievement review and genre
+  mutate(achievements = case_when(is.na(achievements) ~ 0, # Change achievements with NA to 0 
+                                    TRUE ~ achievements))
+
+```
 
 <!----------------------------------------------------------------------------->
 
