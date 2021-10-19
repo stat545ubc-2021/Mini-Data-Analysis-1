@@ -376,6 +376,8 @@ achievement is highest among mixed review games and mostly negative
 games. This is important to our research question because gives us an
 over view of the relationship between achievement number and review.
 
+*Graphing: Task 8*
+
 ``` r
 review_achievement_hist <- game_review_achievement %>%
   ggplot(aes(achievements)) + # X axis is achievement number
