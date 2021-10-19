@@ -301,6 +301,19 @@ game_reivew_price %>%
     ## 8 Very P~          36.7            9.89        488.        0.0100           96.3
     ## # ... with 1 more variable: n <int>
 
+The summary table above shows the summary statistics of the amount games
+were discounted including mean, median, maximum, minimum, standard
+deviation and n number. These statistical summary are grouped based on
+review level. Games which are not discounted or had discounted price
+higher than original price were removed. This is important to the
+research question because it provides an overview on the relationship
+between review level and discount. For example, while the mean and
+median were generally similar between review level (with the exception
+of very negative and mixed), the standard deviation of negative, very
+negative and mostly negative had low standard deviation indicating that
+few games had large discounts. However, this may be due to having more
+games in the database that are mixed or positve.
+
 *Graphing: Task 7*
 
 ``` r
@@ -340,7 +353,7 @@ game_review_achievement <- steam_games %>%
   separate(all_reviews, sep=',', into=c("review"), remove=FALSE, extra = "drop", fill = "right") %>%
   filter(review %in% review_level) %>% # Remove reviews not in correct format (e.g not enough review or NA)
   select(achievements, review) %>% # Keep achievements and review column
-  drop_na(achievements) # Remove games with NA as achievemnets
+  drop_na(achievements) # Remove games with NA as achievements
 
 game_review_achievement %>%
   group_by(review) %>%
@@ -470,7 +483,7 @@ as gore and massive multiplayer only started being released after the
 the most frequent game over time, however, this may be due to data
 processing bias as discussed previously. The next step would be to look
 at similar data across positively rated games compared to negatively
-rated games to see if there are any specific genre that yeilds
+rated games to see if there are any specific genre that yields
 interesting results.
 
 ***1.3.2 How does discounting a game affect the rating of the game?***

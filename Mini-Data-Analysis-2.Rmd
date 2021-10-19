@@ -153,7 +153,7 @@ I investigated the relationship between release date and frequency of game genre
 
 
 ***1.2.3 How does discounting a game affect the rating of the game?***
-
+ 
 *Summarizing: Task 1*
 ```{R}
 game_reivew_price <- steam_games %>%
