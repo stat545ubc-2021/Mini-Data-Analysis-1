@@ -1,6 +1,6 @@
 ---
 title: "Mini Data-Analysis Deliverable 3"
-output: html_document
+output: github_document
 ---
 
 
