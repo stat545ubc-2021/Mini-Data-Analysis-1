@@ -1,0 +1,200 @@
+---
+title: "Mini Data-Analysis Deliverable 1"
+output: html_document
+---
+
+# Introduction
+
+This mini-data analysis aims to explore, analyze and present data from databases using *R* and *tidyverse*. Data manipulation and analysis was done using *dplyr* package. *ggplot2* was used for data visualization. The datasets are taken from *datateachr* package.
+
+The learning objectives of this section is:
+
++ Become familiar with your dataset of choosing
+
++ Think of 4 questions that you would like to answer with your data
+
++ Generate a reproducible and clear report using R Markdown
+
+Load necessary packages for this project.
+```{r}
+library(datateachr)
+library(tidyverse)
+```
+
+# Task 1: Choose your favorite dataset (10 points)
+The data sets were chosen from the `datateachr` package as listed below. 
+
++ *apt_buildings*: Acquired courtesy of The City of Toronto’s Open Data Portal. It currently has 3455 rows and 37 columns.
+
++ *building_permits*: Acquired courtesy of The City of Vancouver’s Open Data Portal. It currently has 20680 rows and 14 columns.
+
++ *cancer_sample*: Acquired courtesy of UCI Machine Learning Repository. It currently has 569 rows and 32 columns.
+
++ *flow_sample*: Acquired courtesy of The Government of Canada’s Historical Hydrometric Database. It currently has 218 rows and 7 columns.
+
++ *parking_meters*: Acquired courtesy of The City of Vancouver’s Open Data Portal. It currently has 10032 rows and 22 columns.
+
++ *steam_games*: Acquired courtesy of Kaggle. It currently has 40833 rows and 21 columns.
+
++ *vancouver_trees*: Acquired courtesy of The City of Vancouver’s Open Data Portal. It currently has 146611 rows and 20 columns.
+
+
+### 1.1 Choose four dataset .
+
+1: apt_buildings    
+2: cancer_sample    
+3: steam_games    
+4: building_permits    
+
+### 1.2 Exploring the four datasets
+One way to narrowing down your selection is to *explore* the datasets. Explore datasets by investigating *3* attributes in each of these datasets. The goal here is to have an idea of *what the data looks like*. 
+
+***1.2.1 apt_building data overview***
+
+```{r}
+glimpse(apt_buildings)
+```
+
+This data set looks at various apartment buildings and explores various aspects of each building. There are 37 variables in the apt_building data set. 28 variables are character data type and 9 variables are double-precision floating point number data type. There are 3,455 apartment buildings recorded in this dataset.  
+
+***1.2.2 cancer_sample data overview***
+```{r}
+### Variables in cencer_sample ###
+summary(cancer_sample)
+```
+
+```{r}
+# Number of benign and malignant tumor samples in dataset
+cancer_sample %>%
+  group_by(diagnosis) %>%
+  summarize(n=n())
+```
+
+```{r}
+ncol(cancer_sample) # Number of column
+nrow(cancer_sample) # Number of row
+```
+
+The cancer_sample dataset looks at various cancer samples in patients. 569 cancer samples were included in this data set. For each cancer sample, the diagnosis variable categorizes samples as benign (b) or malignant (m). Moreover, the mean, standard deviation and worst radius, texture, permeter, area, smoothness, compactness, concavity, concavity points, symmetry and fractal dimension were investigated for each cancer sample. With the exception of diagnosis variable which was a character data type, the other variables were all double-precision floating point number data type.
+
+***1.2.3 steam_games data overview***
+```{r}
+# Show first 6 games in database
+head(steam_games) 
+```
+
+```{r}
+ncol(steam_games) # Number of column (variables) in dataset
+nrow(steam_games) # Number of rows (games) in dataset
+```
+
+The third data set I choose was steam_games. This data set looks at 40833 steam games. There is 21 variables recorded for each game. The id, achievements, original_price and discount_price are in double-precision floating point number data type while the rest are character data type. Interestingly, the release date is in character data type thus needs to be converted into date data type if used for analysis. Moreover, the all_reviews and recent_reviews variable needs to be parsed as it is difficult to analyze in this current format.
+
+***1.2.4 parking_meters data overview***
+```{r}
+glimpse(building_permits)
+```
+
+Lastly, I chose the building_permits database. This database looked at 20,680 building permits. There are 14 variables that is being looked at, 3 of which are double-precision floating point number data type, 1 date data type and the rest are character data type. 
+
+### 1.3 Narrow it down to 2 datasets. 
+
+1: cancer_sample
+
+2: steam_game
+
+***1.3.1 cancer_sample explanation***
+
+I choose the cancer_sample data set because the all cancer samples are split into either malignant or benign category. This allows for many interesting analysis such as looking at properties of malignant tumor compared to benign tumor which may illuminate some of the biological mechanism of cancer. Moreover,  standard deviation of tumor radius or smoothness can be compared between malignant and benign samples
+
+***1.3.2 steam_game explanation***
+
+Secondly, I also choose steam_game data set as I think there are a wide variety of information that could be obtained. For example, we can find the relationship between the price and the review in different genres. Furthermore, as release dates of games are included in this data set, we can look at temporal relationship and elucidate various information regarding the change in the gaming industry overtime. 
+
+### 1.4 Choosing final dataset and research question
+
+A potential research question for *cancer_sample* is what are the difference in tumor properties in cancer samples that are benign compared to malignant. 
+
+A potential research question for *steam_games* is exploring different the variables that are correlated with game ratings and whether these relationships have changed overtime. I have decided that for this data analysis project, I am going to analyze the `steam_games` data set. 
+
+
+# Task 2: Exploring your dataset (15 points)
+
+Before I formulate my *4* research questions about *steam_games*, it is handy to do some exploration on the data set.
+
+### 2.1 Complete four exercise for your data set. 
+
+***1. Create a new variable based on other variables in your data (only if it makes sense)***
+```{r}
+steam_games %>%
+  filter(discount_price != 'NA' & original_price != 'NA') %>% # Remove games that did not have price
+  select(name, original_price, discount_price) %>% # Select column name, original_prices and discount_price
+  mutate(price_dif=original_price-discount_price) %>% # Create new column named price difference
+  head() # Display the first 6 entries of the data
+```
+
+
+I decided that an important variable that can be used for analysis is price difference between original and discounted price. I think that many insigthful analysis can be done based on price difference, for example, looking at whether a larger discounted price is associated with better reviews of the game. This can provide game developers advice on whether they should provide game discounts. 
+
+However, as shown above, many of the games has a negative price difference, indicating that the discounted price is greater than the original price. This is likely due to a data entry error. If I do more forward with this variable, I could either assume that the greater and lower prices are the original and discounted price by taking the absolute value of the price_dif or I can simply drop all data entries that had this error. 
+
+***2. Make a new tibble with a subset of your data, with variables and observations that you are interested in exploring***
+```{r}
+# All possible review levels
+review_levels=c('Overwhelmingly Negative', 'Mostly Negative', 'Very Negative', 'Negative', 'Mixed',
+                'Positive', 'Very Positive','Mostly Positive','Overwhelmingly Positive')
+
+
+steam_games_review <- steam_games %>% 
+  separate(all_reviews, sep=',', into=c("review"),               # Partitioning all_review string by comma
+           remove=FALSE, extra = "drop", fill = "right") %>%     # First objects are the review level and the rest are dropped
+  filter(review %in% review_levels)   # Filter out entries review doesn't match possible review levels (not enough reviews or missing data)
+
+
+steam_games_review %>% 
+  # Filter for games that are in the extreme ends
+  filter(review == 'Overwhelmingly Positive' | review == 'Overwhelmingly Negative') %>% 
+  head()
+```
+
+Another important variable used for analysis is the game review. However, the all_reviews variable are not in an easy to analyze format (e.g Very Positive,(42,550),- 92% of the 42,550 user reviews for this game are positive.). Thus I decided to partition the string using comma and make the new variable review using the first string (e.g "Very Positive"). Moreover, I filtered out reviews that didn't have missing data or had too little reviews thus did not have a review level. The subset of data will have all games categorized as one of the review level in the review_level list. This can allow us to do analysis based on how well received the game was. For example, I filtered games that were either overwhelmingly positive or negative which can be used to compare different properties of games in the two extremes end of the review levels.
+
+***3. Use a box plot to look at the frequency of different observations within a single variable***
+```{R}
+steam_games_review %>% 
+  ggplot(aes(x = factor(review, levels = review_levels), # Used to order review level from lowest to highest
+             y = achievements)) +                        # Plot x as review level and y as number of achievements
+  geom_boxplot(width = 0.3) +                            # Use box plot to represent data
+  scale_y_continuous(trans = 'log10') +                 # Log transform to show games with large number of achievements
+  coord_flip()                                          # Flip graph to display reivew_level properly
+```
+
+An example of using review_lebel to analyze data is shown above. This shows the distribution of number of achievements at each review level. This helps shows whether the number of achievements in the game is associated with how well received the games are. As shown in the box plot above,  the mean number of achievements are fairly similar at each review level. However, there are  more games with large number of achievements in games with high rating compared to games with low reviews as shown in the outlier points. This suggest that game developer should add more achievement to their games as this is associated with greater enjoyment of a game.  
+
+***4. Explore the relationship between 2 variables in a plot.***
+```{R}
+steam_games_time <- steam_games %>% 
+  mutate(release_date = as.Date(release_date, '%b %d, %Y')) # Change date type of release_date from string to date
+
+steam_games_time %>%
+  filter(original_price < 250) %>% # Assume games with prices above 250 is data entry error and removed from data 
+  ggplot(aes(x = release_date, y = original_price)) + # Plot graph with x as release date and y as original game price 
+  geom_point(alpha = 0.3, size = 0.3)                 # Reduce size and transparency to show more data point
+```
+
+Lastly, an example analysis for investigating the change in gaming industry overtime is looking at the relationship between game price and release date. The graph above plots the original price and release date of games. We observe that overtime there is a greater number of games that have higher original price. However, many of the game prices are incorrectly entered, for example, the Railgunners game cost 730640. Although we have removed all games that had prices higher than 250, the games with a high price may be explained by incorrect data entry.  
+
+
+# Task 3: Write your research questions (5 points)
+
+Now it's time to figure out 4 research questions to answer with the data! Write the 4 questions and any additional comments at the end of this deliverable. 
+
+1. How does having a mature rating effect the rating of games in different genre?
+2. Which game genre have the highest rating? Has this changed overtime? 
+3. How many games have never been discounted? Has there been a change in the amount games are discounted overtime? Are games with bigger discounts more well received? 
+4. Do the number of achievements in a game affect their rating in various genres? 
+
+
+### Attribution
+
+Thanks to Icíar Fernández Boyano for mostly putting this together, and Vincenzo Coia for launching.
