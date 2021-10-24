@@ -34,6 +34,7 @@ Begin by loading your data and the tidyverse package below:
 ```{r, message = FALSE}
 library(datateachr) # <- might contain the data you picked!
 library(tidyverse)
+library(broom)
 ```
 
 From Milestone 2, you chose two research questions. What were they? Put them here.
@@ -149,7 +150,22 @@ game_review_price_fct %>%
 
 **Task Number**: FILL_THIS_IN
 
+```{R}
+games_achievement_fct <- games_achievement %>%
+  mutate(genre = fct_lump_min(genre, 1000)) %>%
+  mutate(review = factor(case_when(review %in% c('Overwhelmingly Positive', 'Positive', 'Very Positive','Mostly Positive') ~ 'Positive',
+                                 review == 'Mixed' ~ 'Mixed',
+                                TRUE ~ 'Negative'), levels = c('Positive', 'Mixed', 'Negative'))) %>%
+  drop_na(genre) %>%
+  filter(achievements != 0)
 
+games_achievement_fct %>%
+  ggplot(aes(review, achievements)) + 
+  geom_boxplot() +
+  scale_y_continuous(trans = 'log10') + 
+  facet_wrap(~genre) +
+  coord_flip()
+```
 
 <!----------------------------------------------------------------------------->
 
@@ -179,7 +195,11 @@ Fit a model or run a hypothesis test that provides insight on this variable with
     - You could use `lm()` to test for significance of regression.
 
 <!-------------------------- Start your work below ---------------------------->
+```{R}
+aov.data <- aov(achievements ~ review, data=games_achievement_fct)
 
+summary(aov.data)
+```
 
 <!----------------------------------------------------------------------------->
 
@@ -192,7 +212,18 @@ Produce something relevant from your fitted model: either predictions on Y, or a
 - Obtain your results using the `broom` package if possible. If your model is not compatible with the broom function you're needing, then you can obtain your results by some other means, but first indicate which broom function is not compatible. 
   
 <!-------------------------- Start your work below ---------------------------->
+```{R}
+new_data = tribble(
+  ~review,
+  #--
+  'Positive',
+  'Mixed',
+  'Negative'
+)
 
+augment(aov.data, newdata = new_data)
+glance(aov.data)
+```
 
 <!----------------------------------------------------------------------------->
 
@@ -211,6 +242,19 @@ Take a summary table that you made from Milestone 2 (Exercise 1.2), and write it
   
 <!-------------------------- Start your work below ---------------------------->
 
+```{R}
+achievement_summary <- games_achievement_fct %>%
+  group_by(review) %>%
+  summarize(mean_achievements = mean(achievements), 
+            median_achievements = median(achievements),
+            max_achievements = max(achievements),
+            min_achievements = min(achievements),
+            stdev_achievements = sd(achievements),
+            n = n())
+write.csv(achievement_summary, here::here('output', 'game_achievmenet_summary.csv'))
+read.csv(here::here('output','game_achievmenet_summary.csv'))
+```
+
 
 <!----------------------------------------------------------------------------->
 
@@ -221,7 +265,11 @@ Write your model object from Exercise 2 to an R binary file (an RDS), and load i
 - The same robustness and reproducibility criteria as in 3.1 apply here.
 
 <!-------------------------- Start your work below ---------------------------->
+```{R}
+saveRDS(aov.data, here::here('output','aov_achievement_review_model'))
+readRDS(here::here('output','aov_achievement_review_model'))
 
+```
 
 <!----------------------------------------------------------------------------->
 
