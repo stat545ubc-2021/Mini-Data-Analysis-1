@@ -41,7 +41,7 @@ From Milestone 2, you chose two research questions. What were they? Put them her
 
 <!-------------------------- Start your work below ---------------------------->
 1. *How does discounting a game affect the rating of the game?*
-2. *Do the number of achievements in a game affect their rating?*
+2. *To what extent does the number of achievements in a game affect their rating?*
 <!----------------------------------------------------------------------------->
 
 
@@ -81,12 +81,14 @@ game_reivew_price %>%
   geom_jitter(aes(color = num_reviews > 500), alpha=0.3) + # Use jitter plot with alpha transparency
   coord_flip() + # Flip graph to show review level better
   xlab('Review Level') + # Change x axis
-  ylab('Amount discounted') + # Change y axis
+  ylab('Percentage discounted') + # Change y axis
   scale_y_continuous(trans = 'log10')
   
 ```
 
-***1.1.2 Do the number of achievements in a game affect their rating?***
+The graph above show the relationship between the percentage discount of a game and their review levels. Additionally, the number of review are shown using colors, games that had over 500 reviews are in blue whereas games with less than 500 reviews are in red. This graph shows that there are more games that are discounted with very positive, mostly positive, positive and mixed reviews compared to games in mostly negative, very negative and negative. Moreover, games that are rated very positive or overwhelmingly positive have greater number of reviews. However, it is difficult to compare between review levels in this graph as the review level are ordered alphabetically, thus reordering using factor is necessary as shown in 1.2.1.
+
+***1.1.2 To what extent does the number of achievements in a game affect their rating?***
 
 ```{R}
 steam_games %>%
@@ -99,8 +101,17 @@ steam_games %>%
   mutate(achievements = case_when(is.na(achievements) ~ 0, # Change achievements with NA to 0 
                                     TRUE ~ achievements))
 
+games_achievement %>%
+  filter(genre %in% c('Action', 'Indie', 'Casual', 'Adventure')) %>%
+  ggplot(aes(review, achievements)) + 
+  geom_boxplot() +
+  scale_y_continuous(trans = 'log10') + 
+  facet_wrap(~genre) +
+  coord_flip()
+
 ```
 
+The boxplot above is looking at the relationship between the number of achievements in a game compared to their review level. Moreover, the graph is faceted based on the top genres in the database and because we hypothesized that casual and indie games may have lower number of achievement than other genres such as action and adventure. The graph above shows no major differences between genres in terms of the relationship between review level and achievements. It is difficult to interpret this plot as there are so many information. It would be better to reduce the number of review level and additionally add an 'other genere' facet to better display the data as shown in 1.2.2.  
 
 
 <!----------------------------------------------------------------------------->
@@ -122,7 +133,10 @@ Now, choose two of the following tasks.
 
 <!-------------------------- Start your work below ---------------------------->
 
-**Task Number**: FILL_THIS_IN
+***1.2.1 How does discounting a game affect the rating of the game?***
+
+
+**Task Number**: 1) Produce a new plot that reorders a factor in your original plot, using the `forcats` package
 
 ```{R}
 review_levels=c('Overwhelmingly Negative', 'Mostly Negative', 'Very Negative', 
@@ -143,12 +157,18 @@ game_review_price_fct %>%
 
 ```
 
+I decided to reorder the review level from highest review to lowest review level. This allows for a better compassion of amount discounted between rating level to show the gradual increase in review levels. I used fct_relevel to turn the review level into factor and manual change the ordering as shown in the review_levels vector. 
+
+
 <!----------------------------------------------------------------------------->
 
 
 <!-------------------------- Start your work below ---------------------------->
 
-**Task Number**: FILL_THIS_IN
+***1.2.2 To what extent does the number of achievements in a game affect their rating?***
+
+
+**Task Number**: 2) Produce a new plot that groups some factor levels together into an "other" category
 
 ```{R}
 games_achievement_fct <- games_achievement %>%
@@ -167,6 +187,11 @@ games_achievement_fct %>%
   coord_flip()
 ```
 
+For the box-plot above, I decided to group genres with less than 1000 games into an other category. This is a much better solution that the box-plot in 1.1.2 as it doesn't hide any information and allows for a better compassion with the rest of the data set. I used the fct_lump_min function from the forecat library to lump all genres with less than 1000 games into the other group. Moreover, I grouped all positive review level into positive and all negative review level into negative review as I think that there was too much information displayed in the graph in 1.1.2. The plot above shows that negatively reviewed games tend to have lower achievement number compared to mixed and positive games between all genres. 
+
+
+
+
 <!----------------------------------------------------------------------------->
 
     
@@ -179,9 +204,9 @@ Pick a research question, and pick a variable of interest (we'll call it "Y") th
 
 <!-------------------------- Start your work below ---------------------------->
 
-**Research Question**: FILL_THIS_IN
+**Research Question**: To what extent does the number of achievements in a game affect their rating?
 
-**Variable of interest**: FILL_THIS_IN
+**Variable of interest**: Number of achievements
 
 <!----------------------------------------------------------------------------->
 
@@ -196,10 +221,12 @@ Fit a model or run a hypothesis test that provides insight on this variable with
 
 <!-------------------------- Start your work below ---------------------------->
 ```{R}
-aov.data <- aov(achievements ~ review, data=games_achievement_fct)
+aov.data <- aov(achievements ~ review + genre, data=games_achievement_fct)
 
 summary(aov.data)
 ```
+
+As the research question is investigating the relationship between a quantitative variable, achievement number, and two qualitative variable, review level and genre, linear model would not be an appropriate model. Therefore, I decided to use a one-way analysis of variance as there are more than two categories for review levels and genre. The aov() function models the relationship between achievements, review level and genre in the games_achievement_fct data set. The summary of the one-way analysis of variance is shown above.  
 
 <!----------------------------------------------------------------------------->
 
@@ -213,17 +240,19 @@ Produce something relevant from your fitted model: either predictions on Y, or a
   
 <!-------------------------- Start your work below ---------------------------->
 ```{R}
-new_data = tribble(
-  ~review,
+random_game = tribble(
+  ~review, ~genre,
   #--
-  'Positive',
-  'Mixed',
-  'Negative'
+  'Positive', 'Action',
+  'Mixed', 'Adventure',
+  'Negative', 'Indie'
 )
 
-augment(aov.data, newdata = new_data)
-glance(aov.data)
+augment(aov.data, newdata = random_game)
 ```
+
+Using the one-way analysis of variance model in 2.1, we can predict the number of achievement in a game based on the review level and genre. The random_game tibble shows a set of three random games with varying reviews and genres. Using the model, we can predict the number of achievements based on the review and genre as shown in the .fitted column. The prediction is performed using the augment function as part of the broom library. 
+
 
 <!----------------------------------------------------------------------------->
 
@@ -251,10 +280,11 @@ achievement_summary <- games_achievement_fct %>%
             min_achievements = min(achievements),
             stdev_achievements = sd(achievements),
             n = n())
-write.csv(achievement_summary, here::here('output', 'game_achievmenet_summary.csv'))
-read.csv(here::here('output','game_achievmenet_summary.csv'))
+write.csv(achievement_summary, here::here('output', 'game_achievement_summary.csv'))
+read.csv(here::here('output','game_achievement_summary.csv'))
 ```
 
+The summary statistics for research question two was saved in a tibble called achievement_summary. We saved this tibble into a csv file by writing it into the output directory with the name game_achievement_summary.csv using the write.csv() function. To ensure that this file was saved properly, we read it using the read.csv and shown the output above. 
 
 <!----------------------------------------------------------------------------->
 
@@ -270,6 +300,8 @@ saveRDS(aov.data, here::here('output','aov_achievement_review_model'))
 readRDS(here::here('output','aov_achievement_review_model'))
 
 ```
+
+Similarly, to save the one-way analysis of variance model created in 2.1, saveRDS() function was used to write it to the output directory with the name aov_achievement_review_model. As a sanity check, the model was read using the readRDS() function to ensure the model was saved properly. The read model was output above. 
 
 <!----------------------------------------------------------------------------->
 
