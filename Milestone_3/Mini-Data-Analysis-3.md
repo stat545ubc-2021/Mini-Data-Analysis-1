@@ -53,6 +53,7 @@ Begin by loading your data and the tidyverse package below:
 ``` r
 library(datateachr) # <- might contain the data you picked!
 library(tidyverse)
+library(broom)
 ```
 
 From Milestone 2, you chose two research questions. What were they? Put
@@ -61,7 +62,8 @@ them here.
 <!-------------------------- Start your work below ---------------------------->
 
 1.  *How does discounting a game affect the rating of the game?*
-2.  *Do the number of achievements in a game affect their rating?*
+2.  *To what extent does the number of achievements in a game affect
+    their rating?*
     <!----------------------------------------------------------------------------->
 
 # Exercise 1: Special Data Types (10)
@@ -72,7 +74,7 @@ both tasks that you choose are worth 5 points each.
 But first, tasks 1 and 2 below ask you to modify a plot you made in a
 previous milestone. The plot you choose should involve plotting across
 at least three groups (whether by facetting, or using an aesthetic like
-colour). Place this plot below (you’re allowed to modify the plot if
+color). Place this plot below (you’re allowed to modify the plot if
 you’d like). If you don’t have such a plot, you’ll need to make one.
 Place the code for your plot below.
 
@@ -81,6 +83,7 @@ Place the code for your plot below.
 ***1.1.1 How does discounting a game affect the rating of the game?***
 
 ``` r
+# Vector with all possible review level 
 review_levels=c('Overwhelmingly Negative', 'Mostly Negative', 'Very Negative', 
                  'Negative', 'Mixed', 'Positive', 'Very Positive','Mostly Positive',
                  'Overwhelmingly Positive')
@@ -91,33 +94,44 @@ game_reivew_price <- steam_games %>%
   filter(review %in% review_levels) %>% # Remove reviews not in correct format (e.g not enough review or NA) 
   mutate(num_reviews = stringr::str_extract(string = all_reviews, 
                                                pattern = "(?<=\\().*(?=\\))")) %>% # Obtain number of review based on value in bracket
-  mutate(num_reviews = as.numeric(gsub(",", '', num_reviews))) %>%
-  mutate(discount_price = case_when(is.na(discount_price) ~ original_price,
-                                    TRUE ~ discount_price)) %>% # change discount price with NA to original price
-  mutate(release_date = format(as.Date(release_date, '%b %d, %Y'), format='%Y')) %>%
+  mutate(num_reviews = as.numeric(gsub(",", '', num_reviews))) %>% # Change number of review from string to int data type
   drop_na(original_price) %>% # Remove games without price 
   select(id, original_price, discount_price, review, num_reviews, release_date) %>% # Keep columns related to price and reviews
-  mutate(discount = (discount_price - original_price)*100/original_price) %>%
-  filter(original_price < discount_price)
+  mutate(discount = (original_price - discount_price )/original_price) %>%  # Create new column that is the percentage decrease in game price
+  filter(original_price > discount_price)
 
 
 game_reivew_price %>%
   ggplot(aes(review, discount)) + # X axis is review level (ordered from most negative to most positive)
-  geom_jitter(aes(color = num_reviews > 500), alpha=0.3) + # Use jitter plot with alpha transparency
+  geom_jitter(aes(color = num_reviews > 500), alpha=0.3) + # Use jitter plot with alpha transparency and change color based on number of review
   coord_flip() + # Flip graph to show review level better
   xlab('Review Level') + # Change x axis
-  ylab('Amount discounted') + # Change y axis
-  scale_y_continuous(trans = 'log10')
+  ylab('Percentage discounted')  + # Change y axis
+  scale_y_continuous(labels = scales::percent) + # Display as percentage
+  scale_colour_discrete(breaks=c(TRUE, FALSE), 
+                            labels=c("Over 500 reviews", "Less than 500 reviews")) +
+  theme(legend.title=element_blank())
 ```
-
-    ## Warning: Removed 73 rows containing missing values (geom_point).
 
 ![](Mini-Data-Analysis-3_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
-***1.1.2 Do the number of achievements in a game affect their rating?***
+The graph above show the relationship between the percentage discount of
+a game and their review levels. Additionally, the number of review are
+shown using colors, games that had over 500 reviews are in blue whereas
+games with less than 500 reviews are in red. This graph shows that there
+are more games that are discounted with very positive, mostly positive,
+positive and mixed reviews compared to games with mostly negative, very
+negative or negative review. Moreover, games that are rated very
+positive or overwhelmingly positive have greater number of reviews.
+However, it is difficult to compare between review levels in this graph
+as the review level are ordered alphabetically, thus reordering using
+factor is necessary as shown in 1.2.1.
+
+***1.1.2 To what extent does the number of achievements in a game affect
+their rating?***
 
 ``` r
-steam_games %>%
+games_achievement <- steam_games %>%
   # Get review level by parsing string based on comma deliminator and keeping first object
   separate(all_reviews, sep=',', into=c("review"), remove=FALSE, extra = "drop", fill = "right") %>%
   filter(review %in% review_levels) %>% # Remove reviews not in correct format (e.g not enough review or NA) 
@@ -125,23 +139,31 @@ steam_games %>%
   separate(genre, sep=',', into=c("genre"), remove=TRUE, extra = "drop", fill = "right") %>%
   select(id, achievements, review, genre) %>% # Keep columns related to achievement review and genre
   mutate(achievements = case_when(is.na(achievements) ~ 0, # Change achievements with NA to 0 
-                                    TRUE ~ achievements))
+                                    TRUE ~ achievements)) %>%
+  drop_na(genre) %>% # Remove games without genre
+  filter(achievements != 0) # Remove games with no achievement
+
+games_achievement %>%
+  filter(genre %in% c('Action', 'Indie', 'Casual', 'Adventure')) %>%
+  ggplot(aes(review, achievements)) + 
+  geom_boxplot() +
+  scale_y_continuous(trans = 'log10') + 
+  facet_wrap(~genre) +
+  coord_flip()
 ```
 
-    ## # A tibble: 17,363 x 4
-    ##       id achievements review          genre    
-    ##    <dbl>        <dbl> <chr>           <chr>    
-    ##  1     1           54 Very Positive   Action   
-    ##  2     2           37 Mixed           Action   
-    ##  3     3          128 Mostly Positive Action   
-    ##  4     4            0 Mixed           Action   
-    ##  5     5            0 Mostly Positive Action   
-    ##  6     7           51 Very Positive   Action   
-    ##  7     8           55 Very Positive   Adventure
-    ##  8     9           34 Very Positive   Strategy 
-    ##  9    10           43 Mixed           Action   
-    ## 10    11           72 Very Positive   Adventure
-    ## # ... with 17,353 more rows
+![](Mini-Data-Analysis-3_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+The boxplot above is looking at the relationship between the number of
+achievements in a game compared to their review level. Moreover, the
+graph is faceted based on the top genres in the database and because we
+hypothesized that casual and indie games may have lower number of
+achievement than other genres such as action and adventure. The graph
+above shows no major differences between genres in terms of the
+relationship between review level and achievements. It is difficult to
+interpret this plot as there are so many information. It would be better
+to reduce the number of review level and additionally add an ‘other
+genere’ facet to better display the data as shown in 1.2.2.
 
 <!----------------------------------------------------------------------------->
 
@@ -183,18 +205,24 @@ Now, choose two of the following tasks.
 
 <!-------------------------- Start your work below ---------------------------->
 
-**Task Number**: FILL_THIS_IN
+***1.2.1 How does discounting a game affect the rating of the game?***
+
+**Task Number**: 1) Produce a new plot that reorders a factor in your
+original plot, using the `forcats` package
 
 ``` r
+# Review levels ordered from lowest to highest
 review_levels=c('Overwhelmingly Negative', 'Mostly Negative', 'Very Negative', 
                  'Negative', 'Mixed', 'Positive', 'Very Positive','Mostly Positive',
                  'Overwhelmingly Positive')
 
 game_review_price_fct <- game_reivew_price %>%
-  mutate(review = fct_relevel(review, levels = review_levels))
+  mutate(review = fct_relevel(review, levels = review_levels)) # Manually reordering review level from lowest to highest
 ```
 
     ## Warning: Outer names are only allowed for unnamed scalar atomic inputs
+
+    ## Warning: Unknown levels in `f`: Overwhelmingly Negative
 
 ``` r
 game_review_price_fct %>% 
@@ -202,18 +230,62 @@ game_review_price_fct %>%
   geom_jitter(aes(color = num_reviews > 500), alpha=0.3) + # Use jitter plot with alpha transparency
   coord_flip() + # Flip graph to show review level better
   xlab('Review Level') + # Change x axis
-  ylab('Amount discounted') + # Change y axis
-  scale_y_continuous(trans = 'log10')
+  ylab('Percentage discounted') + # Change y axis
+  scale_y_continuous(labels = scales::percent) + # Display as percentage
+  scale_colour_discrete(breaks=c(TRUE, FALSE), 
+                            labels=c("Over 500 reviews", "Less than 500 reviews")) +
+  theme(legend.title=element_blank())
 ```
 
-    ## Warning: Removed 73 rows containing missing values (geom_point).
-
 ![](Mini-Data-Analysis-3_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
+I decided to reorder the review level from lowest review to highest
+review level. This allows for a better compassion of amount discounted
+between rating level to show the gradual increase in review levels. I
+used fct_relevel to turn the review level into factor and manual change
+the ordering as shown in the review_levels vector. For example, now it
+more clearly illustrates the difference in the amount of games
+discounted in positive review level compared to negative.
 
 <!----------------------------------------------------------------------------->
 <!-------------------------- Start your work below ---------------------------->
 
-**Task Number**: FILL_THIS_IN
+***1.2.2 To what extent does the number of achievements in a game affect
+their rating?***
+
+**Task Number**: 2) Produce a new plot that groups some factor levels
+together into an “other” category
+
+``` r
+games_achievement_fct <- games_achievement %>%
+  mutate(genre = fct_lump_min(genre, 500)) %>% # Lump all genres with less than 1000 games into other category
+  # Group review level into positive, mixed and negative
+  mutate(review = factor(case_when(review %in% c('Overwhelmingly Positive', 'Positive', 'Very Positive','Mostly Positive') ~ 'Positive',
+                                 review == 'Mixed' ~ 'Mixed',
+                                TRUE ~ 'Negative'), levels = c('Positive', 'Mixed', 'Negative'))) 
+  
+
+games_achievement_fct %>%
+  ggplot(aes(review, achievements)) +  # X axis is review level and Y axis is number of achievements
+  geom_boxplot() + # Display boxplots
+  scale_y_continuous(trans = 'log10') + # Perform log10 transformation on  achievement number
+  facet_wrap(~genre) + # Facet based on genre
+  coord_flip() # Flip graph
+```
+
+![](Mini-Data-Analysis-3_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+For the box-plot above, I decided to group genres with less than 500
+games into an other category. This is a much better solution that the
+box-plot in 1.1.2 as it doesn’t hide any information and allows for a
+better compassion with the rest of the data set. I used the fct_lump_min
+function from the forecat library to lump all genres with less than 500
+games into the other group. Moreover, I grouped all positive review
+level into positive and all negative review level into negative review
+in order to reduce clutter and too much information as shown in 1.1.2.
+The plot above shows that negatively reviewed games tend to have lower
+achievement number compared to mixed and positive games between all
+genres.
 
 <!----------------------------------------------------------------------------->
 
@@ -226,9 +298,10 @@ Pick a research question, and pick a variable of interest (we’ll call it
 
 <!-------------------------- Start your work below ---------------------------->
 
-**Research Question**: FILL_THIS_IN
+**Research Question**: To what extent does the number of achievements in
+a game affect their rating?
 
-**Variable of interest**: FILL_THIS_IN
+**Variable of interest**: Number of achievements
 
 <!----------------------------------------------------------------------------->
 
@@ -253,6 +326,29 @@ specifics in STAT 545.
     -   You could use `lm()` to test for significance of regression.
 
 <!-------------------------- Start your work below ---------------------------->
+
+``` r
+aov.data <- aov(achievements ~ review + genre, data=games_achievement_fct) # One-way analysis of variance modeling between achievements, review and genre.
+
+summary(aov.data) # Displaying summary information of model
+```
+
+    ##               Df    Sum Sq Mean Sq F value   Pr(>F)    
+    ## review         2 4.575e+06 2287704   8.963 0.000129 ***
+    ## genre          4 2.004e+07 5010610  19.630 4.22e-16 ***
+    ## Residuals   8941 2.282e+09  255253                     
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+As the research question is investigating the relationship between a
+quantitative variable, achievement number, and two qualitative variable,
+review level and genre, linear model would not be an appropriate model.
+Therefore, I decided to use a one-way analysis of variance as there are
+more than two categories for review levels and genre. The aov() function
+models the relationship between achievements, review level and genre in
+the games_achievement_fct data set. The summary of the one-way analysis
+of variance is shown above.
+
 <!----------------------------------------------------------------------------->
 
 ## 2.2 (5 points)
@@ -270,6 +366,51 @@ Y, or a single value like a regression coefficient or a p-value.
     which broom function is not compatible.
 
 <!-------------------------- Start your work below ---------------------------->
+
+``` r
+# Set of games with varying genre and review to test model
+random_game = tribble(
+  ~review, ~genre,
+  #------|-------
+  'Positive', 'Action',
+  'Mixed', 'Action',
+  'Negative', 'Action',
+  'Positive', 'Casual',
+  'Mixed', 'Casual',
+  'Negative', 'Casual'
+)
+
+# Predict number of achievement based on review and genre
+broom::augment(aov.data, newdata = random_game)
+```
+
+    ## Warning: Tidiers for objects of class aov are not maintained by the broom team,
+    ## and are only supported through the lm tidier method. Please be cautious in
+    ## interpreting and reporting broom output.
+
+    ## # A tibble: 6 x 3
+    ##   review   genre  .fitted
+    ##   <chr>    <chr>    <dbl>
+    ## 1 Positive Action    87.2
+    ## 2 Mixed    Action   138. 
+    ## 3 Negative Action   141. 
+    ## 4 Positive Casual   179. 
+    ## 5 Mixed    Casual   230. 
+    ## 6 Negative Casual   233.
+
+Using the one-way analysis of variance model in 2.1, we can predict the
+number of achievement in a game based on the review level and genre. The
+random_game tibble shows a set of three random games with varying
+reviews and genres. Using the model, we can predict the number of
+achievements based on the review and genre as shown in the .fitted
+column. The prediction is performed using the augment function as part
+of the broom library. This model can be used by game developer to
+determine how many achievements they should add in the game. For
+example, when creating an action game, developers should aim to add
+approximately 87 achievements whereas when creating a casual game,
+approximately 179 achievement should be added. However, further analysis
+needs to be done to determine if these relationships are significant.
+
 <!----------------------------------------------------------------------------->
 
 # Exercise 3: Reading and writing data
@@ -292,6 +433,36 @@ function.
     file, and remake it simply by knitting this Rmd file.
 
 <!-------------------------- Start your work below ---------------------------->
+
+``` r
+achievement_summary <- games_achievement_fct %>% # Save summary statistic of achievement to achievement_summary
+  group_by(review) %>% 
+  summarize(mean_achievements = mean(achievements), 
+            median_achievements = median(achievements),
+            max_achievements = max(achievements),
+            min_achievements = min(achievements),
+            stdev_achievements = sd(achievements),
+            n = n())
+write.csv(achievement_summary, here::here('output', 'game_achievement_summary.csv')) # Write statistical summary to output directory
+read.csv(here::here('output','game_achievement_summary.csv')) # Read saved data to ensure it is properly save 
+```
+
+    ##   X   review mean_achievements median_achievements max_achievements
+    ## 1 1 Positive          78.23327                  24             9821
+    ## 2 2    Mixed         127.70291                  23             5000
+    ## 3 3 Negative         130.84150                  19             5000
+    ##   min_achievements stdev_achievements    n
+    ## 1                1           440.1634 6366
+    ## 2                1           639.7473 2235
+    ## 3                1           668.7788  347
+
+The summary statistics for research question two was saved in a tibble
+called achievement_summary. We saved this tibble into a csv file by
+writing it into the output directory with the name
+game_achievement_summary.csv using the write.csv() function. To ensure
+that this file was saved properly, we read it using the read.csv and
+shown the output above.
+
 <!----------------------------------------------------------------------------->
 
 ## 3.2 (5 points)
@@ -304,6 +475,29 @@ folder. Use the functions `saveRDS()` and `readRDS()`.
     here.
 
 <!-------------------------- Start your work below ---------------------------->
+
+``` r
+saveRDS(aov.data, here::here('output','aov_achievement_review_model')) # Save One-Way ANOVA model to output directory
+readRDS(here::here('output','aov_achievement_review_model')) # Read One-Way ANOVA
+```
+
+    ## Call:
+    ##    aov(formula = achievements ~ review + genre, data = games_achievement_fct)
+    ## 
+    ## Terms:
+    ##                     review      genre  Residuals
+    ## Sum of Squares     4575409   20042441 2282214272
+    ## Deg. of Freedom          2          4       8941
+    ## 
+    ## Residual standard error: 505.2254
+    ## Estimated effects may be unbalanced
+
+Similarly, to save the one-way analysis of variance model created in
+2.1, saveRDS() function was used to write it to the output directory
+with the name aov_achievement_review_model. As a sanity check, the model
+was read using the readRDS() function to ensure the model was saved
+properly. The read model was output above.
+
 <!----------------------------------------------------------------------------->
 
 # Tidy Repository
