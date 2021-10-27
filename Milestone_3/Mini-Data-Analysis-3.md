@@ -51,9 +51,9 @@ your results in the context of a different research question.
 Begin by loading your data and the tidyverse package below:
 
 ``` r
-library(datateachr) # <- might contain the data you picked!
-library(tidyverse)
-library(broom)
+suppressMessages(library(datateachr)) 
+suppressMessages(library(tidyverse))
+suppressMessages(library(broom))
 ```
 
 From Milestone 2, you chose two research questions. What were they? Put
@@ -102,15 +102,15 @@ game_reivew_price <- steam_games %>%
 
 
 game_reivew_price %>%
-  ggplot(aes(review, discount)) + # X axis is review level (ordered from most negative to most positive)
+  ggplot(aes(review, discount)) + # X axis is review level 
   geom_jitter(aes(color = num_reviews > 500), alpha=0.3) + # Use jitter plot with alpha transparency and change color based on number of review
   coord_flip() + # Flip graph to show review level better
   xlab('Review Level') + # Change x axis
   ylab('Percentage discounted')  + # Change y axis
   scale_y_continuous(labels = scales::percent) + # Display as percentage
   scale_colour_discrete(breaks=c(TRUE, FALSE), 
-                            labels=c("Over 500 reviews", "Less than 500 reviews")) +
-  theme(legend.title=element_blank())
+                            labels=c("Over 500 reviews", "Less than 500 reviews")) + # Change color legend label
+  theme(legend.title=element_blank()) # Remove legend title
 ```
 
 ![](Mini-Data-Analysis-3_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
@@ -144,12 +144,12 @@ games_achievement <- steam_games %>%
   filter(achievements != 0) # Remove games with no achievement
 
 games_achievement %>%
-  filter(genre %in% c('Action', 'Indie', 'Casual', 'Adventure')) %>%
-  ggplot(aes(review, achievements)) + 
-  geom_boxplot() +
-  scale_y_continuous(trans = 'log10') + 
-  facet_wrap(~genre) +
-  coord_flip()
+  filter(genre %in% c('Action', 'Indie', 'Casual', 'Adventure')) %>% # Manually filter for top genres
+  ggplot(aes(review, achievements)) + # X axis is review level and y axis is achievement number
+  geom_boxplot() + # Display as box plot
+  scale_y_continuous(trans = 'log10') + # Transform achievement number using logg10 scale
+  facet_wrap(~genre) + # Facet based on genre
+  coord_flip() # Flip coordinate of graph
 ```
 
 ![](Mini-Data-Analysis-3_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
@@ -161,9 +161,10 @@ hypothesized that casual and indie games may have lower number of
 achievement than other genres such as action and adventure. The graph
 above shows no major differences between genres in terms of the
 relationship between review level and achievements. It is difficult to
-interpret this plot as there are so many information. It would be better
-to reduce the number of review level and additionally add an ‘other
-genere’ facet to better display the data as shown in 1.2.2.
+interpret this plot as there are so much information in terms of review
+level. It would be better to reduce the number of review level and
+additionally add an ‘other genere’ facet to better display the data as
+shown in 1.2.2.
 
 <!----------------------------------------------------------------------------->
 
@@ -226,7 +227,7 @@ game_review_price_fct <- game_reivew_price %>%
 
 ``` r
 game_review_price_fct %>% 
-  ggplot(aes(review, discount)) + # X axis is review level (ordered from most negative to most positive)
+  ggplot(aes(review, discount)) + # X axis is review level 
   geom_jitter(aes(color = num_reviews > 500), alpha=0.3) + # Use jitter plot with alpha transparency
   coord_flip() + # Flip graph to show review level better
   xlab('Review Level') + # Change x axis
@@ -244,8 +245,10 @@ review level. This allows for a better compassion of amount discounted
 between rating level to show the gradual increase in review levels. I
 used fct_relevel to turn the review level into factor and manual change
 the ordering as shown in the review_levels vector. For example, now it
-more clearly illustrates the difference in the amount of games
-discounted in positive review level compared to negative.
+more clearly illustrates the greater number of games discounted in
+positive review level compared to negative. Furthermore, it is clearly
+shown that there are more games that have over 500 reviews in positive
+review level then negative.
 
 <!----------------------------------------------------------------------------->
 <!-------------------------- Start your work below ---------------------------->
@@ -284,8 +287,8 @@ games into the other group. Moreover, I grouped all positive review
 level into positive and all negative review level into negative review
 in order to reduce clutter and too much information as shown in 1.1.2.
 The plot above shows that negatively reviewed games tend to have lower
-achievement number compared to mixed and positive games between all
-genres.
+achievement number compared to mixed and positive games. However, there
+is no signficiant change in this relationship between different genres.
 
 <!----------------------------------------------------------------------------->
 
@@ -400,16 +403,16 @@ broom::augment(aov.data, newdata = random_game)
 
 Using the one-way analysis of variance model in 2.1, we can predict the
 number of achievement in a game based on the review level and genre. The
-random_game tibble shows a set of three random games with varying
-reviews and genres. Using the model, we can predict the number of
-achievements based on the review and genre as shown in the .fitted
-column. The prediction is performed using the augment function as part
-of the broom library. This model can be used by game developer to
-determine how many achievements they should add in the game. For
-example, when creating an action game, developers should aim to add
-approximately 87 achievements whereas when creating a casual game,
-approximately 179 achievement should be added. However, further analysis
-needs to be done to determine if these relationships are significant.
+random_game tibble shows a set of six random games with varying reviews
+and genres. Using the model, we can predict the number of achievements
+based on the review and genre as shown in the .fitted column. The
+prediction is performed using the augment function as part of the broom
+library. This model can be used by game developer to determine how many
+achievements they should add in the game. For example, when creating an
+action game, developers should aim to add approximately 87 achievements
+whereas when creating a casual game, approximately 179 achievement
+should be added. However, further analysis needs to be done to determine
+if these relationships are significant.
 
 <!----------------------------------------------------------------------------->
 
