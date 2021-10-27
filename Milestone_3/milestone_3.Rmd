@@ -159,8 +159,8 @@ game_review_price_fct %>%
   ylab('Percentage discounted') + # Change y axis
   scale_y_continuous(labels = scales::percent) + # Display as percentage
   scale_colour_discrete(breaks=c(TRUE, FALSE), 
-                            labels=c("Over 500 reviews", "Less than 500 reviews")) +
-  theme(legend.title=element_blank())
+                            labels=c("Over 500 reviews", "Less than 500 reviews")) + # Change color legend name 
+  theme(legend.title=element_blank()) # Remove legend title
          
 
 ```

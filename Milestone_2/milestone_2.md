@@ -179,7 +179,7 @@ games_maturity_review %>%
   xlab('Review Levels')
 ```
 
-![](Mini-Data-Analysis-2_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](milestone_2_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 The graph above is a bar chart showing the frequency of games at each
 review level faceted based on whether it has maturity rating. As shown
@@ -251,7 +251,7 @@ steam_games %>%
   scale_y_continuous(trans = 'log10')  # Make frequency into log10 
 ```
 
-![](Mini-Data-Analysis-2_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+![](milestone_2_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 I investigated the relationship between release date and frequency of
 game genres to answer this research question. The data is faceted into 4
@@ -325,7 +325,7 @@ game_reivew_price %>%
   ylab('Amount discounted')
 ```
 
-![](Mini-Data-Analysis-2_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](milestone_2_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 The jitter plot above explores the relationship between the amount
 discounted from the game and the review level. We hypothesized that
@@ -405,7 +405,7 @@ review_achievement_hist + geom_histogram(binwidth = 85)
 
     ## Warning: Removed 74 rows containing missing values (geom_bar).
 
-![](Mini-Data-Analysis-2_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+![](milestone_2_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ``` r
 review_achievement_hist + geom_histogram(binwidth = 350)
@@ -415,7 +415,7 @@ review_achievement_hist + geom_histogram(binwidth = 350)
 
     ## Warning: Removed 13 rows containing missing values (geom_bar).
 
-![](Mini-Data-Analysis-2_files/figure-gfm/unnamed-chunk-9-2.png)<!-- -->
+![](milestone_2_files/figure-gfm/unnamed-chunk-9-2.png)<!-- -->
 
 ``` r
 review_achievement_hist + geom_histogram(binwidth = 700)
@@ -425,7 +425,7 @@ review_achievement_hist + geom_histogram(binwidth = 700)
 
     ## Warning: Removed 6 rows containing missing values (geom_bar).
 
-![](Mini-Data-Analysis-2_files/figure-gfm/unnamed-chunk-9-3.png)<!-- -->
+![](milestone_2_files/figure-gfm/unnamed-chunk-9-3.png)<!-- -->
 
 Afterwards, the distribution of achievements were plotted for
 visualization. As shown in the histogram above, most games contained no

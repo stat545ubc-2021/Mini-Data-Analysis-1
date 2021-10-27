@@ -113,7 +113,7 @@ game_reivew_price %>%
   theme(legend.title=element_blank()) # Remove legend title
 ```
 
-![](Mini-Data-Analysis-3_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+![](milestone_3_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
 The graph above show the relationship between the percentage discount of
 a game and their review levels. Additionally, the number of review are
@@ -152,7 +152,7 @@ games_achievement %>%
   coord_flip() # Flip coordinate of graph
 ```
 
-![](Mini-Data-Analysis-3_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](milestone_3_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 The boxplot above is looking at the relationship between the number of
 achievements in a game compared to their review level. Moreover, the
@@ -234,11 +234,11 @@ game_review_price_fct %>%
   ylab('Percentage discounted') + # Change y axis
   scale_y_continuous(labels = scales::percent) + # Display as percentage
   scale_colour_discrete(breaks=c(TRUE, FALSE), 
-                            labels=c("Over 500 reviews", "Less than 500 reviews")) +
-  theme(legend.title=element_blank())
+                            labels=c("Over 500 reviews", "Less than 500 reviews")) + # Change color legend name 
+  theme(legend.title=element_blank()) # Remove legend title
 ```
 
-![](Mini-Data-Analysis-3_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](milestone_3_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 I decided to reorder the review level from lowest review to highest
 review level. This allows for a better compassion of amount discounted
@@ -276,7 +276,7 @@ games_achievement_fct %>%
   coord_flip() # Flip graph
 ```
 
-![](Mini-Data-Analysis-3_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+![](milestone_3_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 For the box-plot above, I decided to group genres with less than 500
 games into an other category. This is a much better solution that the

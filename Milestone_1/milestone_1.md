@@ -438,7 +438,7 @@ steam_games_review %>%
 
     ## Warning: Removed 8402 rows containing non-finite values (stat_boxplot).
 
-![](mini-project-1_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](milestone_1_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 An example of using review_lebel to analyze data is shown above. This
 shows the distribution of number of achievements at each review level.
@@ -465,7 +465,7 @@ steam_games_time %>%
 
     ## Warning: Removed 752 rows containing missing values (geom_point).
 
-![](mini-project-1_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](milestone_1_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
 
 Lastly, an example analysis for investigating the change in gaming
 industry overtime is looking at the relationship between game price and
